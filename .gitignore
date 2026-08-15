@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+release/
+
+# Smoke-test artifacts
+smoke-shots/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Vite cache
+.vite/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+*.swp
