@@ -3,6 +3,10 @@
   "productName": "SSHHub",
   "version": "0.1.0",
   "description": "Cross-platform local SSH profile manager",
+  "author": {
+    "name": "Harsh Soni",
+    "email": "harshsoni.dev@gmail.com"
+  },
   "main": "dist/main/main/index.js",
   "private": true,
   "scripts": {
@@ -22,7 +26,7 @@
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
     "electron": "^31.3.0",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^26.15.7",
     "playwright-core": "^1.62.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
