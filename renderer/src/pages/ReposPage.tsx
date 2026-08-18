@@ -108,23 +108,51 @@ function ConvertModal({ repo, profiles, onClose, onDone }: {
   onDone: () => void;
 }) {
   const toast = useToast();
-  const [profileId, setProfileId] = useState(profiles[0]?.id ?? '');
+  const [profileId, setProfileId] = useState(
+    profiles.find((p) => p.id === repo.matchedProfileId)?.id ?? profiles[0]?.id ?? ''
+  );
   const [preview, setPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [gitName, setGitName] = useState('');
+  const [gitEmail, setGitEmail] = useState('');
+  const [savedIdentity, setSavedIdentity] = useState<{ name: string; email: string } | null>(null);
+  const [globals, setGlobals] = useState<{ name: string | null; email: string | null }>({ name: null, email: null });
 
   const selected = profiles.find((p) => p.id === profileId) ?? null;
+
+  useEffect(() => {
+    api.getRepoIdentity(repo.path)
+      .then((id) => {
+        setGitName(id.name ?? '');
+        setGitEmail(id.email ?? '');
+        setSavedIdentity({ name: id.name ?? '', email: id.email ?? '' });
+        setGlobals({ name: id.globalName, email: id.globalEmail });
+      })
+      .catch(() => setSavedIdentity({ name: '', email: '' }));
+  }, [repo.path]);
 
   useEffect(() => {
     if (!selected) { setPreview(null); return; }
     api.convertUrl(repo.remoteUrl, selected.alias, selected.user).then(setPreview).catch(() => setPreview(null));
   }, [repo.remoteUrl, selected]);
 
+  const urlChanged = preview !== null && preview !== repo.remoteUrl;
+  const identityChanged =
+    savedIdentity !== null && (gitName.trim() !== savedIdentity.name || gitEmail.trim() !== savedIdentity.email);
+
   const apply = async () => {
-    if (!preview) return;
     setBusy(true);
     try {
-      await api.setRemote(repo.path, repo.remoteName, preview);
-      toast(`${repo.name}: remote "${repo.remoteName}" now uses ${selected!.name}`);
+      const done: string[] = [];
+      if (urlChanged && preview) {
+        await api.setRemote(repo.path, repo.remoteName, preview);
+        done.push(`remote → ${selected!.name}`);
+      }
+      if (identityChanged) {
+        await api.setRepoIdentity(repo.path, gitName, gitEmail);
+        done.push('git identity updated');
+      }
+      toast(`${repo.name}: ${done.join(', ')}`);
       onDone();
     } catch (e) {
       toast((e as Error).message, 'err');
@@ -145,17 +173,43 @@ function ConvertModal({ repo, profiles, onClose, onDone }: {
               {profiles.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.alias})</option>)}
             </select>
           </div>
-          <div className="kv small">
+          <div className="kv small" style={{ marginBottom: 16 }}>
             <span className="k">Current URL</span>
             <span className="mono">{repo.remoteUrl}</span>
             <span className="k">New URL</span>
-            <span className="mono">{preview ?? '⚠️ URL format not recognized'}</span>
+            <span className="mono">
+              {preview === null ? '⚠️ URL format not recognized'
+                : urlChanged ? preview
+                : `${preview} (unchanged)`}
+            </span>
           </div>
+          <div className="form-grid">
+            <div className="field">
+              <label>Commit name (this repo)</label>
+              <input
+                placeholder={globals.name ? `global: ${globals.name}` : 'e.g. Harsh Soni'}
+                value={gitName}
+                onChange={(e) => setGitName(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label>Commit email (this repo)</label>
+              <input
+                placeholder={globals.email ? `global: ${globals.email}` : 'e.g. you@example.com'}
+                value={gitEmail}
+                onChange={(e) => setGitEmail(e.target.value)}
+              />
+            </div>
+          </div>
+          <p className="hint dim small" style={{ marginTop: 8 }}>
+            Sets <span className="mono">user.name</span> / <span className="mono">user.email</span> in this
+            repository only. Leave a field empty to fall back to your global git config.
+          </p>
         </>
       )}
       <div className="actions">
         <button className="btn" onClick={onClose}>Cancel</button>
-        <button className="btn primary" disabled={!preview || busy} onClick={apply}>
+        <button className="btn primary" disabled={busy || (!urlChanged && !identityChanged)} onClick={apply}>
           {busy ? 'Applying…' : 'Apply'}
         </button>
       </div>

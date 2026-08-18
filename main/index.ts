@@ -6,7 +6,7 @@ import * as keys from './ssh/keys';
 import * as sshConfig from './ssh/config';
 import * as agent from './ssh/agent';
 import { testConnection } from './ssh/test';
-import { scanRepos, convertUrl, setRemoteUrl } from './git/scanner';
+import { scanRepos, convertUrl, setRemoteUrl, getRepoIdentity, setRepoIdentity } from './git/scanner';
 import { listAwsProfiles } from './aws/profiles';
 import { Profile, GenerateKeyRequest } from '../shared/types';
 
@@ -64,6 +64,10 @@ function registerIpc(getWindow: () => BrowserWindow | null) {
   handle('repos:convertUrl', (url: string, alias: string, user: string) => convertUrl(url, alias, user));
   handle('repos:setRemote', (repoPath: string, remoteName: string, url: string) =>
     setRemoteUrl(repoPath, remoteName, url)
+  );
+  handle('repos:getIdentity', (repoPath: string) => getRepoIdentity(repoPath));
+  handle('repos:setIdentity', (repoPath: string, name: string, email: string) =>
+    setRepoIdentity(repoPath, name, email)
   );
 
   handle('aws:profiles', () => listAwsProfiles());

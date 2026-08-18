@@ -35,6 +35,9 @@ const api = {
   convertUrl: (url: string, alias: string, user: string) => invoke('repos:convertUrl', url, alias, user),
   setRemote: (repoPath: string, remoteName: string, url: string) =>
     invoke('repos:setRemote', repoPath, remoteName, url),
+  getRepoIdentity: (repoPath: string) => invoke('repos:getIdentity', repoPath),
+  setRepoIdentity: (repoPath: string, name: string, email: string) =>
+    invoke('repos:setIdentity', repoPath, name, email),
 
   listAwsProfiles: () => invoke('aws:profiles'),
 

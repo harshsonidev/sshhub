@@ -7,6 +7,7 @@ import type {
   GenerateKeyRequest,
   GenerateKeyResult,
   Profile,
+  RepoIdentity,
   RepoInfo,
   Settings,
   SshConfigSnapshot,
@@ -37,6 +38,8 @@ export interface SshHubApi {
   scanRepos(root: string): Promise<RepoInfo[]>;
   convertUrl(url: string, alias: string, user: string): Promise<string | null>;
   setRemote(repoPath: string, remoteName: string, url: string): Promise<void>;
+  getRepoIdentity(repoPath: string): Promise<RepoIdentity>;
+  setRepoIdentity(repoPath: string, name: string, email: string): Promise<void>;
 
   listAwsProfiles(): Promise<AwsProfile[]>;
 

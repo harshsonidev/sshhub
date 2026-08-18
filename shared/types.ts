@@ -89,6 +89,13 @@ export interface RepoInfo {
   matchedProfileName: string | null;
 }
 
+export interface RepoIdentity {
+  name: string | null;
+  email: string | null;
+  globalName: string | null;
+  globalEmail: string | null;
+}
+
 export interface AwsProfile {
   name: string;
   region: string | null;
